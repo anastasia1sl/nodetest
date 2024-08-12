@@ -14,7 +14,7 @@ import {
   getStudentsController,
   getStudentByIdController,
 } from '../controllers/students.js';
-import { ctrlWrapper } from '../utils/ctrlWrapper';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const studentsRouter = Router();
 
