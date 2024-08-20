@@ -1,55 +1,70 @@
 import { Router } from 'express';
-import { createStudentController } from '../controllers/students.js';
-import { deleteStudentController } from '../controllers/students.js';
-import { upsertStudentController } from '../controllers/students.js';
-import { patchStudentController } from '../controllers/students.js';
+import {
+  createStudentController,
+  deleteStudentController,
+  upsertStudentController,
+  patchStudentController,
+  getStudentsController,
+  getStudentByIdController,
+} from '../controllers/students.js';
+
 import { validateBody } from '../middlewares/validateBody.js';
+import { isValidId } from '../middlewares/isValidId.js';
+import { authenticate } from '../middlewares/authenticate.js';
+import { checkRoles } from '../middlewares/checkRoles.js';
+import { ROLES } from '../constants/index.js';
 import {
   createStudentSchema,
   updateStudentSchema,
 } from '../validation/students.js';
-import { isValidId } from '../middlewares/isValidId.js';
 
-import {
-  getStudentsController,
-  getStudentByIdController,
-} from '../controllers/students.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const studentsRouter = Router();
 
-studentsRouter.get('/students', ctrlWrapper(getStudentsController));
+studentsRouter.use(authenticate);
+
 studentsRouter.get(
-  '/students/:studentId',
+  '/',
+  checkRoles(ROLES.TEACHER),
+  ctrlWrapper(getStudentsController),
+);
+
+studentsRouter.get(
+  '/:studentId',
+  checkRoles(ROLES.TEACHER, ROLES.PARENT),
   isValidId,
   ctrlWrapper(getStudentByIdController),
 );
 
-studentsRouter.post('/students', ctrlWrapper(createStudentController));
-studentsRouter.delete(
-  '/students/:studentId',
-  isValidId,
-  ctrlWrapper(deleteStudentController),
+studentsRouter.post(
+  '/register',
+  checkRoles(ROLES.TEACHER),
+  validateBody(createStudentSchema),
+  ctrlWrapper(createStudentController),
 );
 
 studentsRouter.put(
-  '/students/:studentId',
+  '/:studentId',
+  checkRoles(ROLES.TEACHER),
   isValidId,
   validateBody(createStudentSchema),
   ctrlWrapper(upsertStudentController),
 );
 
 studentsRouter.patch(
-  '/students/:studentId',
+  '/:studentId',
+  checkRoles(ROLES.TEACHER, ROLES.PARENT),
   isValidId,
   validateBody(updateStudentSchema),
   ctrlWrapper(patchStudentController),
 );
 
-studentsRouter.post(
-  '/',
-  validateBody(createStudentSchema),
-  ctrlWrapper(createStudentController),
+studentsRouter.delete(
+  '/:studentId',
+  checkRoles(ROLES.TEACHER),
+  isValidId,
+  ctrlWrapper(deleteStudentController),
 );
 
 export default studentsRouter;
